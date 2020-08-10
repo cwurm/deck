@@ -280,9 +280,13 @@ func (sc *Syncer) eventCompleted() {
 
 func (sc *Syncer) wait() {
 	time.Sleep(time.Duration(sc.StageDelaySec) * time.Second)
-	for atomic.LoadInt32(&sc.inFlightOps) != 0 {
+
+	// Sleep for a maximum of 10x the specified delay to avoid infinite loop
+	max := 10
+	for max > 0 && atomic.LoadInt32(&sc.inFlightOps) != 0 {
 		// TODO hack?
 		time.Sleep(1 * time.Millisecond)
+		max--
 	}
 }
 
